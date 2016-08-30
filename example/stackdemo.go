@@ -12,8 +12,8 @@ import (
 )
 
 var ch = make(chan int)
-var len = flag.Int("len", 1000, "queue len")
-var cpus = flag.Int("pro", 2, "process number")
+var len = flag.Int("len", 1000, "stack len")
+var cpus = flag.Int("cpus", 2, "use cpu number")
 
 func Counter() {
 	sum := 0
@@ -29,42 +29,42 @@ func Counter() {
 	}
 }
 
-func DoEnqueue(q *hpds.Queue, i int) {
-	q.Enqueue(i)
+func DoPush(stack *hpds.Stack, i int) {
+	stack.Push(i)
 }
 
-func DoDequue(q *hpds.Queue) {
+func DoPop(stack *hpds.Stack) {
 	n := *len
 	for i := 0; i < n; i++ {
-		value, ok := q.Dequeue()
-		if ok == false {
+		value := stack.Pop()
+		if value == nil {
 			ch <- i
 
 			return
 		}
-		//fmt.Println("dequeue:", value)
+		fmt.Println("Pop:", value)
 		value = value
 	}
 	ch <- n
 }
-func DoNew() *hpds.Queue {
-	q := hpds.NewQueue()
-	return q
+func DoNew() *hpds.Stack {
+	stack := hpds.NewStack()
+	return stack
 }
 
 func main() {
 	flag.Parse()
-	q := hpds.NewQueue()
+	stack := hpds.NewStack()
 	runtime.GOMAXPROCS(*cpus)
 
 	for i := 0; i < *len; i++ {
-		q.Enqueue(i)
+		stack.Push(i)
 	}
 
-	fmt.Println("len:", q.Len())
+	fmt.Println("len:", stack.Len())
 
 	for g := 0; g < 10; g++ {
-		go DoDequue(q)
+		go DoPop(stack)
 	}
 
 	sum := 0
